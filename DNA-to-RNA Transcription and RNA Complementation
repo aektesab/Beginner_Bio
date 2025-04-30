@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Transcription-then-Complementation of DNA to RNA
+DNA-to-RNA Transcription and RNA Complementation
 
 1. Transcribe DNA → RNA (T → U)
 2. Compute the complement of the RNA (A ↔ U, C ↔ G)
@@ -36,11 +36,18 @@ def main():
     )
     parser.add_argument(
         "sequence",
+        nargs="?",           # make the positional argument optional
+        default=None,
         help="Input DNA sequence (e.g. ATGCGT)"
     )
     args = parser.parse_args()
 
-    dna = args.sequence.strip()
+    # If no sequence provided, prompt the user
+    if args.sequence is None:
+        args.sequence = input("Enter DNA sequence: ").strip()
+
+    dna = args.sequence
+    # Validate DNA characters
     if any(n not in "ATGCatgc" for n in dna):
         sys.exit("ERROR: Sequence contains invalid DNA characters (A/T/G/C only).")
 
