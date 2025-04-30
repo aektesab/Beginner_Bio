@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""
+Transcription-then-Complementation of DNA to RNA
+
+1. Transcribe DNA → RNA (T → U)
+2. Compute the complement of the RNA (A ↔ U, C ↔ G)
+"""
+
+import argparse
+import sys
+
+# Mapping for RNA complement
+RNA_COMPLEMENT = str.maketrans({
+    "A": "U",
+    "U": "A",
+    "C": "G",
+    "G": "C",
+    # lowercase support
+    "a": "u",
+    "u": "a",
+    "c": "g",
+    "g": "c",
+})
+
+def transcribe_dna_to_rna(dna_seq: str) -> str:
+    """Transcribe DNA to RNA by replacing T→U."""
+    return dna_seq.upper().replace("T", "U")
+
+def complement_rna(rna_seq: str) -> str:
+    """Return the complement of an RNA sequence."""
+    return rna_seq.translate(RNA_COMPLEMENT)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Transcribe DNA to RNA, then compute RNA complement"
+    )
+    parser.add_argument(
+        "sequence",
+        help="Input DNA sequence (e.g. ATGCGT)"
+    )
+    args = parser.parse_args()
+
+    dna = args.sequence.strip()
+    if any(n not in "ATGCatgc" for n in dna):
+        sys.exit("ERROR: Sequence contains invalid DNA characters (A/T/G/C only).")
+
+    # Step 1: Transcription
+    rna = transcribe_dna_to_rna(dna)
+    # Step 2: Complement of the RNA
+    comp_rna = complement_rna(rna)
+
+    print(f"> Original DNA:     {dna}")
+    print(f"> Transcribed RNA:  {rna}")
+    print(f"> RNA Complement:   {comp_rna}")
+
+if __name__ == "__main__":
+    main()
