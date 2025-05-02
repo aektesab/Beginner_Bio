@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""
+Oligo Binding Energy Calculator with Binding Site Prediction
+
+1. Prompt for two sequences (RNA or DNA) and normalize (uppercase, U→T).
+2. Identify the shorter (oligo) and longer (target) sequences.
+3. Slide the oligo across the target; for each alignment, compute:
+     • A–T pairs: -2 kcal/mol each
+     • G–C pairs: -3 kcal/mol each
+     • Energy = at_pairs * -2 + gc_pairs * -3
+4. Select the alignment with the most negative energy (strongest binding).
+5. Report the optimal binding site, counts, mismatches, and estimated energy.
+"""
+import sys
+
+def get_sequence(prompt):
+    seq = input(prompt).strip()
+    if not seq:
+        sys.exit("ERROR: Empty sequence provided.")
+    # Normalize: uppercase and treat U as T
+    return seq.upper().replace('U', 'T')
+
+
+def calculate_best_binding(short_seq, long_seq):
+    """Slide short_seq over long_seq and find best binding energy."""
+    best = {
+        'energy': None,
+        'offset': None,
+        'at_pairs': 0,
+        'gc_pairs': 0
+    }
+    for offset in range(len(long_seq) - len(short_seq) + 1):
+        segment = long_seq[offset:offset + len(short_seq)]
+        at = sum(1 for a, b in zip(short_seq, segment) if {a, b} == {'A', 'T'})
+        gc = sum(1 for a, b in zip(short_seq, segment) if {a, b} == {'G', 'C'})
+        energy = at * -2 + gc * -3
+        if best['energy'] is None or energy < best['energy']:
+            best.update({
+                'energy': energy,
+                'offset': offset,
+                'at_pairs': at,
+                'gc_pairs': gc
+            })
+    # Calculate mismatches for best
+    mismatches = len(short_seq) - (best['at_pairs'] + best['gc_pairs'])
+    best['mismatches'] = mismatches
+    return best
+
+
+def main():
+    print("Oligo Binding Energy Calculator with Binding Site Prediction")
+    seq1 = get_sequence("Enter sequence 1 (RNA/DNA): ")
+    seq2 = get_sequence("Enter sequence 2 (RNA/DNA): ")
+
+    # Determine oligo vs target by length
+    if len(seq1) <= len(seq2):
+        oligo, target = seq1, seq2
+    else:
+        oligo, target = seq2, seq1
+
+    if len(oligo) < 2:
+        sys.exit("ERROR: Oligo too short for meaningful binding.")
+
+    result = calculate_best_binding(oligo, target)
+    start = result['offset'] + 1
+    end = result['offset'] + len(oligo)
+    target_segment = target[result['offset']:result['offset'] + len(oligo)]
+
+    print(f"\nOptimal binding site (target positions {start}–{end}):")
+    print(f" Target segment : {target_segment}")
+    print(f" Oligo sequence : {oligo}")
+    print(f" A–T pairs      : {result['at_pairs']}")
+    print(f" G–C pairs      : {result['gc_pairs']}")
+    print(f" Mismatches     : {result['mismatches']}")
+    print(f" Estimated energy: {result['energy']} kcal/mol")
+
+if __name__ == '__main__':
+    main()
